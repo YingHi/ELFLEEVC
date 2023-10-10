@@ -31,7 +31,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		rstartPoint.x = LOWORD(lParam);
 		rstartPoint.y = HIWORD(lParam);
-		isMouseRButtonPressed = 1;
+		if (rstartPoint.x > startPoint.x && rstartPoint.x < endPoint.x) {
+			if (rstartPoint.y > startPoint.y && rstartPoint.y < endPoint.y) {
+				isMouseRButtonPressed = 1;
+			}
+		}
 	}
 	break;
 
@@ -82,19 +86,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_RBUTTONUP:
 	{
-		rendPoint.x = LOWORD(lParam);
-		rendPoint.y = HIWORD(lParam);
+		if (isMouseRButtonPressed) {
+			rendPoint.x = LOWORD(lParam);
+			rendPoint.y = HIWORD(lParam);
 
-		float xchai = rstartPoint.x - rendPoint.x;
-		float ychai = rstartPoint.y - rendPoint.y;
-		startPoint.x -= xchai;
-		startPoint.y -= ychai;
-		endPoint.x -= xchai;
-		endPoint.y -= ychai;
+			float xchai = rstartPoint.x - rendPoint.x;
+			float ychai = rstartPoint.y - rendPoint.y;
+			startPoint.x -= xchai;
+			startPoint.y -= ychai;
+			endPoint.x -= xchai;
+			endPoint.y -= ychai;
 
-		// WM_PAINT 메시지를 유발하여 네모를 화면에 그립니다.
-		InvalidateRect(hwnd, NULL, TRUE);
-		isMouseRButtonPressed = 0;
+			// WM_PAINT 메시지를 유발하여 네모를 화면에 그립니다.
+			InvalidateRect(hwnd, NULL, TRUE);
+			isMouseRButtonPressed = 0;
+		}
 	}
 	break;
 
