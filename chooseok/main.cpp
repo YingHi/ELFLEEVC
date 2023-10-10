@@ -18,120 +18,130 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-		case WM_LBUTTONDOWN:
-		{
-			startPoint.x = LOWORD(lParam);
-			startPoint.y = HIWORD(lParam);
-			isMouseLButtonPressed = 1;
-		}
-		break; 
-		case WM_RBUTTONDOWN:
-		{
-			rstartPoint.x = LOWORD(lParam);
-			rstartPoint.y = HIWORD(lParam);
-			isMouseRButtonPressed = 1;
-		}
-		break;
+	case WM_LBUTTONDOWN:
+	{
+		startPoint.x = LOWORD(lParam);
+		startPoint.y = HIWORD(lParam);
+		endPoint.x = LOWORD(lParam);
+		endPoint.y = HIWORD(lParam);
+		isMouseLButtonPressed = 1;
+	}
+	break;
+	case WM_RBUTTONDOWN:
+	{
+		rstartPoint.x = LOWORD(lParam);
+		rstartPoint.y = HIWORD(lParam);
+		isMouseRButtonPressed = 1;
+	}
+	break;
 
-		//강의에 안나왔지만 마우스가 움직일때의 이벤트를 뜻합니다.
-		case WM_MOUSEMOVE:
-		{
-			// 마우스 이동 중
-			if (isMouseLButtonPressed)
-			{
-				endPoint.x = LOWORD(lParam);
-				endPoint.y = HIWORD(lParam);
-			
-				// WM_PAINT 메시지를 유발하여 네모를 화면에 그립니다.
-				InvalidateRect(hwnd, NULL, TRUE);
-			}
-			if (isMouseRButtonPressed)
-			{
-				rendPoint.x = LOWORD(lParam);
-				rendPoint.y = HIWORD(lParam);
-
-				// WM_PAINT 메시지를 유발하여 네모를 화면에 그립니다.
-				InvalidateRect(hwnd, NULL, TRUE);
-			}
-		}
-		break;
-
-	case WM_LBUTTONUP:
+	//강의에 안나왔지만 마우스가 움직일때의 이벤트를 뜻합니다.
+	case WM_MOUSEMOVE:
+	{
+		// 마우스 이동 중
+		if (isMouseLButtonPressed)
 		{
 			endPoint.x = LOWORD(lParam);
 			endPoint.y = HIWORD(lParam);
 
-			HDC hdc = GetDC(hwnd);
-			RECT rect = { startPoint.x, startPoint.y, endPoint.x, endPoint.y }; // 왼쪽 상단 좌표 (50, 50)에서 오른쪽 하단 좌표 (150, 150)까지의 사각형
-			HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 255)); // 핑크 브러시 생성
-
-			FillRect(hdc, &rect, hBrush); // 사각형을 빨간색으로 채우기
-			ReleaseDC(hwnd, hdc);
-			isMouseLButtonPressed = 0;
-
 			// WM_PAINT 메시지를 유발하여 네모를 화면에 그립니다.
 			InvalidateRect(hwnd, NULL, TRUE);
 		}
-		break;
-	case WM_RBUTTONUP:
+		if (isMouseRButtonPressed)
 		{
 			rendPoint.x = LOWORD(lParam);
 			rendPoint.y = HIWORD(lParam);
 
-			isMouseRButtonPressed = 0;
-			
-			HDC hdc = GetDC(hwnd); // 디바이스 컨텍스트 얻기
-			
-			HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 255)); // 핑크 브러시 생성
-			SelectObject(hdc, hBrush);
+			float xchai = rstartPoint.x - rendPoint.x;
+			float ychai = rstartPoint.y - rendPoint.y;
+			startPoint.x -= xchai;
+			startPoint.y -= ychai;
+			endPoint.x -= xchai;
+			endPoint.y -= ychai;
 
-			Ellipse(hdc, rstartPoint.x, rstartPoint.y, rendPoint.x, rendPoint.y); // 왼쪽 상단 좌표 (50, 50)에서 오른쪽 하단 좌표 (200, 150)까지의 타원
+			rstartPoint.x = LOWORD(lParam);
+			rstartPoint.y = HIWORD(lParam);
+			
+
+			// WM_PAINT 메시지를 유발하여 네모를 화면에 그립니다.
+			InvalidateRect(hwnd, NULL, TRUE);
+		}
+
+	}
+	break;
+
+	case WM_LBUTTONUP:
+	{
+		endPoint.x = LOWORD(lParam);
+		endPoint.y = HIWORD(lParam);
+
+		// WM_PAINT 메시지를 유발하여 네모를 화면에 그립니다.
+		InvalidateRect(hwnd, NULL, TRUE);
+		isMouseLButtonPressed = 0;
+	}
+	break;
+	case WM_RBUTTONUP:
+	{
+		rendPoint.x = LOWORD(lParam);
+		rendPoint.y = HIWORD(lParam);
+
+		float xchai = rstartPoint.x - rendPoint.x;
+		float ychai = rstartPoint.y - rendPoint.y;
+		startPoint.x -= xchai;
+		startPoint.y -= ychai;
+		endPoint.x -= xchai;
+		endPoint.y -= ychai;
+
+		// WM_PAINT 메시지를 유발하여 네모를 화면에 그립니다.
+		InvalidateRect(hwnd, NULL, TRUE);
+		isMouseRButtonPressed = 0;
+	}
+	break;
+
+	case WM_PAINT:
+	{
+		HDC hdc = GetDC(hwnd);
+
+		if (isMouseLButtonPressed || isMouseRButtonPressed)
+		{
+			RECT rect;
+			GetClientRect(hwnd, &rect);
+			FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW + 1));
+
+			rect = { startPoint.x, startPoint.y, endPoint.x, endPoint.y };
+			HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 255)); // 핑크 브러시 생성
+
+			FillRect(hdc, &rect, hBrush); // 사각형을 빨간색으로 채우기
 
 			DeleteObject(hBrush);
-
-			ReleaseDC(hwnd, hdc); // 디바이스 컨텍스트 해제
 		}
-		break;
 
-		case WM_PAINT:
-		{
-			HDC hdc = GetDC(hwnd);
-
-			if (isMouseLButtonPressed || isMouseRButtonPressed)
-			{
-				RECT rect;
-				GetClientRect(hwnd, &rect);
-				FillRect(hdc, &rect, (HBRUSH)(COLOR_WINDOW + 1));
-
-				MoveToEx(hdc, startPoint.x, startPoint.y, NULL);
-			}
-
-			ReleaseDC(hwnd, hdc);
+		ReleaseDC(hwnd, hdc);
 
 
 
-			/** 타원 그리기
-			*/
-			//HDC hdc = GetDC(hwnd); // 디바이스 컨텍스트 얻기
-			//
-			//HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 255)); // 핑크 브러시 생성
-			//SelectObject(hdc, hBrush);
+		/** 타원 그리기
+		*/
+		//HDC hdc = GetDC(hwnd); // 디바이스 컨텍스트 얻기
+		//
+		//HBRUSH hBrush = CreateSolidBrush(RGB(255, 0, 255)); // 핑크 브러시 생성
+		//SelectObject(hdc, hBrush);
 
-			//// 타원 그리기
-			//Ellipse(hdc, 50, 50, 200, 150); // 왼쪽 상단 좌표 (50, 50)에서 오른쪽 하단 좌표 (200, 150)까지의 타원
+		//// 타원 그리기
+		//Ellipse(hdc, 50, 50, 200, 150); // 왼쪽 상단 좌표 (50, 50)에서 오른쪽 하단 좌표 (200, 150)까지의 타원
 
-			//DeleteObject(hBrush);
+		//DeleteObject(hBrush);
 
-			//ReleaseDC(hwnd, hdc); // 디바이스 컨텍스트 해제
+		//ReleaseDC(hwnd, hdc); // 디바이스 컨텍스트 해제
 
 
-		}
-		break;
+	}
+	break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
 	default:
-		return DefWindowProc(hwnd, uMsg, wParam, lParam);		
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 
 	return S_OK;
